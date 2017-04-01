@@ -18,7 +18,7 @@ A aplicação node foi construída em um único arquivo, o `index.js`, que se en
 
 O primeiro passo é configurar o node para prover uma página web utilizando o express e, além disso, utilizar a biblioteca socket.io, para permitir que os clientes definam e saibam, em tempo real, o estado do led.
 
-```
+```javascript
 var app = require("express")();
 var express = require("express");
 
@@ -32,7 +32,7 @@ A partir disso, instanciamos um objeto SerialPort e o configuramos para utilizar
 
 > A porta e o bound rate utilizados variam de acordo com as configurações e estado do seu sistema.
 
-```
+```javascript
 var SerialPort = require("serialport");
 var arduino = new SerialPort("/dev/ttyACM0", {
   baudrate: 9600,
@@ -42,7 +42,7 @@ var arduino = new SerialPort("/dev/ttyACM0", {
 
 Para efeitos de interatividade, definimos um evento "open" para quando finalmente nos conectarmos ao arduino.
 
-```
+```javascript
 arduino.on("open", function(){
   console.log("Connected to arduino");
 });
@@ -50,7 +50,7 @@ arduino.on("open", function(){
 
 Para acessarmos nossa página web pelo navegador, definimos uma rota `GET` no repositório `/` em nosso servidor.
 
-```
+```javascript
 app.get("/", function(req, res){
   res.sendFile("index.html");
 });
@@ -61,7 +61,7 @@ Neste momento temos um servidor web configurado para responder com um arquivo `i
 Agora é necessário configurar o socket.io para que possamos receber e enviar informações entre nosso servidor e a aplicação cliente conectada a ele. Tal processo é realizado com a definição de um evento `connection`, que é disparado todas as vezes que um cliente se conecta utilizando a biblioteca do socket.io.
 
 
-```
+```javascript
 io.on("connection", function(client){
 
   console.log("User has been connected!");
@@ -71,7 +71,7 @@ O objeto que representa o socket aberto com o cliente é recebido como argumento
 
 O evento `get_info` aciona a escrita na porta serial a mensagem `get_info` para que o arduino responda com a informação do atual estado do LED. Já o evento `turn_led` aciona a escrita na porta serial das mensagens `turn_led`, que indica ao arduino que troque o estado atual do LED, e `get_info`.
 
-```
+```javascript
   client.on("get_info", function(msg){
     console.log("Received get_info");
     arduino.write("get_info\n");
@@ -94,7 +94,7 @@ A mensagem `get_info` terá um retorno, via porta serial, do nosso arduino. A pa
 
 > No caso deste exemplo, não é realizada uma análise da mensagem provida pela nossa placa devido a ausência de necessidade para isso. Em caso de múltiplos tipos de mensagens, podemos adicionar prefixos para indicar tipos de mensagens e a manipulamos em nosso servidor ou em nossos clientes de acordo com as nossas necessidades.
 
-```
+```javascript
 arduino.on("data", function(data){
   console.log("Arduino resposnse");
   io.sockets.emit("info", {
@@ -105,7 +105,7 @@ arduino.on("data", function(data){
 
 Precisamos agora definir a porta onde nosso servidor web irá "escutar" as requisições dos clientes. Neste caso definimos a porta 8080 e emitimos uma mensagem quando isto ocorrer.
 
-```
+```javascript
 http.listen(8080, function(){
   console.log("http server started!")
 });
@@ -119,13 +119,13 @@ Pelas configurações do servidor, nossa aplicação arduino deverá ser capaz d
 
 Primeiramente definimos uma política de pré-processamento para representar o pino onde nosso LED se encontra, neste caso o pino 12.
 
-```
+```C
 #define LED 12
 ```
 
 Após isso, definimos uma variável para armazenar o estado do nosso LED e realizamos as definições básicas da nossa placa dentro da função `setup`, onde definimos o bound rate para 9600b/s, definimos o pino do LED como sendo de saída e, neste caso, desligamos nosso LED.
 
-```
+```C
 int status = 0;
 
 void setup() {
@@ -137,7 +137,7 @@ void setup() {
 
 Em nosso loop principal, verificamos a existência de alguma mensagem. Em caso positivo, recebemos ela e a repassamos para o método `void processData(String)`.
 
-```
+```C
 void loop() {
   if(Serial.available() > 0){
     String data = Serial.readStringUntil('\n');
@@ -148,7 +148,7 @@ void loop() {
 
 No método `void processData(String)`, verificamos se a mensagem é algum dos comandos aceitos, ou seja, `turn_led` e `get_info`. Caso seja a primeira, trocamos o estado da nossa variável `status` e atualizamos o nosso LED. No caso da segunda possibilidade, ou seja `get_info`, escrevemos em nossa porta serial o estado atual do LED, neste caso "ON", para ligado, e "OFF", para desligado.
 
-```
+```C
 void processData(String data){
   if(data == "turn_led"){
     status = !status;
