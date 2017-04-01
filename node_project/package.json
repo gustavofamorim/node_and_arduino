@@ -1,0 +1,22 @@
+{
+  "name": "node_and_arduino",
+  "version": "1.0.0",
+  "description": "Simple node.js and Arduino serial communication project.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "arduino",
+    "node.js",
+    "serial",
+    "communication"
+  ],
+  "author": "Gustavo Freitas de Amorim",
+  "license": "GPLv3",
+  "dependencies": {
+    "express": "^4.15.2",
+    "serialport": "^4.0.7",
+    "socket.io": "^1.7.3"
+  }
+}
