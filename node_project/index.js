@@ -12,43 +12,39 @@ var arduino = new SerialPort("/dev/ttyACM0", {
   parser: SerialPort.parsers.readline('\n')
 });
 
-var socket;
+arduino.on("open", function(){
+  console.log("Connected to arduino");
+});
 
 app.get("/", function(req, res){
   res.sendFile("index.html");
 });
 
-arduino.on("open", function(){
-  console.log("Connected to arduino");
-});
-
-arduino.on("data", function(data){
-  console.log("Arduino resposnse");
-  socket.emit("info", {
-    ledStatus: data
-  });
-});
-
 io.on("connection", function(client){
-
-  socket = client;
 
   console.log("User has been connected!");
 
-  socket.on("get_info", function(msg){
+  client.on("get_info", function(msg){
     console.log("Received get_info");
     arduino.write("get_info\n");
   });
 
-  socket.on("turn_led", function(msg){
+  client.on("turn_led", function(msg){
     console.log("Received turn_led");
     arduino.write("turn_led\n");
     console.log("Sended get_info to arduino");
     arduino.write("get_info\n");
   });
 
-  socket.on("disconnect", function() {
+  client.on("disconnect", function() {
     console.log("User has been disconnected!");
+  });
+});
+
+arduino.on("data", function(data){
+  console.log("Arduino resposnse");
+  io.sockets.emit("info", {
+    ledStatus: data
   });
 });
 
